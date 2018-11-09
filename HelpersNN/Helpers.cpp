@@ -41,7 +41,7 @@ namespace Helpers
 		return m;
 	}
 
-	void MatrixToFile(string path, MatrixXd m, bool includeSize = true)
+	void MatrixToFile(string path, MatrixXd m, bool includeSize)
 	{
 		ofstream file(path);
 
