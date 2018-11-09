@@ -33,3 +33,6 @@
 *.ilk
 *.pdb
 *.suo
+/HelpersNN/Debug
+/RobotNN/Debug
+/TrainNN/Debug

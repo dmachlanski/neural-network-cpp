@@ -10,6 +10,7 @@ namespace Helpers
 	MatrixXd FileToMatrix(string path);
 	void FindNormParams(MatrixXd m, VectorXd &mean, VectorXd &range);
 	MatrixXd Normalize(MatrixXd m, VectorXd mu, VectorXd sigma);
+	MatrixXd UnNormalize(MatrixXd m, VectorXd mu, VectorXd sigma);
 	MatrixXd Sigmoid(MatrixXd m);
 	double MeanSquaredError(MatrixXd desired, MatrixXd approx);
 }

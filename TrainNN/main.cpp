@@ -1,7 +1,6 @@
 #include <iostream>
 #include <Eigen/Dense>
-#include "../HelpersNN/Helpers.h"
-#include "../HelpersNN/TwoLayerNN.h"
+#include "TwoLayerNN.h"
 
 using namespace std;
 using namespace Eigen;
@@ -19,6 +18,8 @@ int main()
 	model.InitializeModel(inputPath, outputPath, 10);
 
 	model.Train(0.03, 10);
+
+	model.SaveModel(OUTPUT_PATH);
 
 	return 0;
 }

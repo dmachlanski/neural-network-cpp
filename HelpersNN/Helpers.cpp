@@ -85,6 +85,11 @@ namespace Helpers
 		return ((m.colwise() - mu).array().colwise() / sigma.array()).matrix();
 	}
 
+	MatrixXd UnNormalize(MatrixXd m, VectorXd mu, VectorXd sigma)
+	{
+		return ((m.array().colwise() * sigma.array()).colwise() + mu.array()).matrix();
+	}
+
 	MatrixXd Sigmoid(MatrixXd m)
 	{
 		MatrixXd result(m.rows(), m.cols());

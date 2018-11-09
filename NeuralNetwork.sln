@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrainNN", "TrainNN\TrainNN.vcxproj", "{D87054AA-AA8F-47DB-A5C3-EFCDD5834A1E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2882C786-8A1A-46C5-8290-224F75FED3E0} = {2882C786-8A1A-46C5-8290-224F75FED3E0}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RobotNN", "RobotNN\RobotNN.vcxproj", "{C5416D7E-AE9E-47F3-840F-59FE8901C28E}"
 EndProject

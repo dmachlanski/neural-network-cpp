@@ -1,6 +1,6 @@
 #include <iostream>
 #include <Eigen/Dense>
-#include "../HelpersNN/TwoLayerNN.h"
+#include "TwoLayerNN.h"
 
 using namespace std;
 using namespace Eigen;
@@ -16,7 +16,15 @@ int main()
 	input_raw(0, 0) = input1;
 	input_raw(1, 0) = input2;
 
-	cout << input_raw << endl;
+	cout << input_raw << endl << endl;
+
+	TwoLayerNN model;
+
+	model.LoadModel("../output/");
+
+	MatrixXd result = model.Predict(input_raw);
+	
+	cout << result << endl;
 
 	return 0;
 }

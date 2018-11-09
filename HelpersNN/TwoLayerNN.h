@@ -12,10 +12,12 @@ public:
 	void InitializeModel(string inputDataPath, string outputDataPath, int hiddenUnits);
 	void LoadModel(string path);
 	void SaveModel(string path);
-	void Train(int learningRate, int epochs);
+	void Train(double learningRate, int epochs);
+	MatrixXd Predict(MatrixXd input);
+	void TestNormalization(MatrixXd input);
 
 private:
-	MatrixXd FeedForward();
+	MatrixXd FeedForward(MatrixXd input);
 	void Backprop(MatrixXd Yhat);
 
 	int inputSize, hiddenSize, outputSize;

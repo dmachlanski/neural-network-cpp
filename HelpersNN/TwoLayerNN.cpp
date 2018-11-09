@@ -63,14 +63,14 @@ void TwoLayerNN::SaveModel(string path)
 	Helpers::MatrixToFile(path + "J.csv", J, false);
 }
 
-void TwoLayerNN::Train(int learningRate, int epochs)
+void TwoLayerNN::Train(double learningRate, int epochs)
 {
 	J = VectorXd::Zero(epochs);
 
 	for (int i = 0; i < epochs; i++)
 	{
 		// Main training loop
-		MatrixXd Yhat = FeedForward();
+		MatrixXd Yhat = FeedForward(X_train);
 		J(i) = Helpers::MeanSquaredError(Y_train, Yhat);
 		Backprop(Yhat);
 
@@ -84,14 +84,37 @@ void TwoLayerNN::Train(int learningRate, int epochs)
 	}
 }
 
+void TwoLayerNN::TestNormalization(MatrixXd input)
+{
+	MatrixXd norm = Helpers::Normalize(input, muX, sigmaX);
+
+	MatrixXd result = Helpers::UnNormalize(norm, muX, sigmaX);
+
+	cout << "Before:\n" << input << endl;
+
+	cout << "After:\n" << result << endl;
+}
+
+MatrixXd TwoLayerNN::Predict(MatrixXd input)
+{
+	// Normalize
+	MatrixXd input_norm = Helpers::Normalize(input, muX, sigmaX);
+
+	// Feed forward
+	MatrixXd Yhat = FeedForward(input_norm);
+
+	// Un-normalize
+	return Helpers::UnNormalize(Yhat, muY, sigmaY);
+}
+
 #pragma endregion
 
 
 #pragma region Private methods
 
-MatrixXd TwoLayerNN::FeedForward()
+MatrixXd TwoLayerNN::FeedForward(MatrixXd input)
 {
-	Z1 = (W1 * X_train).colwise() + b1;
+	Z1 = (W1 * input).colwise() + b1;
 	A1 = Helpers::Sigmoid(Z1);
 
 	return ((W2 * A1).colwise() + b2);
