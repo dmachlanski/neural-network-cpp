@@ -8,15 +8,16 @@ TwoLayerNN::TwoLayerNN()
 
 #pragma region Public methods
 
-void TwoLayerNN::InitializeModel(string inputDataPath, string outputDataPath, int hiddenUnits)
+void TwoLayerNN::InitializeModel(string inputDataPath, string outputDataPath, int hiddenUnits, bool normalizeOutput)
 {
+	TwoLayerNN::normalizeOutput = normalizeOutput;
+
 	// Load the data
 	MatrixXd X = Helpers::FileToMatrix(inputDataPath);
 	MatrixXd Y = Helpers::FileToMatrix(outputDataPath);
 
-	// TODO: Divide into train/valid/test sets
-	X_train = X;
-	Y_train = Y;
+	// Split the data (70/15/15)
+	SplitDataSet(X, Y, 0.7, 0.15, 0.15);
 
 	// Set the sizes for all the matrixes
 	inputSize = X.rows();
@@ -32,10 +33,12 @@ void TwoLayerNN::InitializeModel(string inputDataPath, string outputDataPath, in
 	// Find normalization params
 	Helpers::FindNormParams(X_train, muX, sigmaX);
 	Helpers::FindNormParams(Y_train, muY, sigmaY);
-
-	// Normalize the data
 	X_train = Helpers::Normalize(X_train, muX, sigmaX);
-	Y_train = Helpers::Normalize(Y_train, muY, sigmaY);
+
+	if (normalizeOutput)
+	{
+		Y_train = Helpers::Normalize(Y_train, muY, sigmaY);
+	}
 }
 
 void TwoLayerNN::LoadModel(string path)
@@ -61,17 +64,26 @@ void TwoLayerNN::SaveModel(string path)
 	Helpers::MatrixToFile(path + "muY.csv", muY);
 	Helpers::MatrixToFile(path + "sigmaY.csv", sigmaY);
 	Helpers::MatrixToFile(path + "J.csv", J, false);
+	Helpers::MatrixToFile(path + "Valid.csv", Valid, false);
 }
 
 void TwoLayerNN::Train(double learningRate, int epochs)
 {
 	J = VectorXd::Zero(epochs);
+	Valid = VectorXd::Zero(epochs);
+
+	// TODO:
+	// Introduce batch size
 
 	for (int i = 0; i < epochs; i++)
 	{
 		// Main training loop
-		MatrixXd Yhat = FeedForward(X_train);
+		MatrixXd Yhat = FeedForward(X_train, true);
 		J(i) = Helpers::MeanSquaredError(Y_train, Yhat);
+
+		MatrixXd Yvalid = Predict(X_valid, TwoLayerNN::normalizeOutput);
+		Valid(i) = Helpers::MeanSquaredError(Y_valid, Yvalid);
+
 		Backprop(Yhat);
 
 		// Apply gradients
@@ -80,8 +92,11 @@ void TwoLayerNN::Train(double learningRate, int epochs)
 		W2 -= (learningRate * dW2.array()).matrix();
 		b2 -= (learningRate * db2.array()).matrix();
 
-		cout << "Epoch " << i << ", loss: " << J(i) << endl;
+		cout << "Epoch " << i << ", loss: " << J(i) << ", valid: " << Valid(i) << endl;
 	}
+
+	MatrixXd Ytest = Predict(X_test, TwoLayerNN::normalizeOutput);
+	cout << "Test error: " << Helpers::MeanSquaredError(Y_test, Ytest) << endl;
 }
 
 void TwoLayerNN::TestNormalization(MatrixXd input)
@@ -95,16 +110,18 @@ void TwoLayerNN::TestNormalization(MatrixXd input)
 	cout << "After:\n" << result << endl;
 }
 
-MatrixXd TwoLayerNN::Predict(MatrixXd input)
+MatrixXd TwoLayerNN::Predict(MatrixXd input, bool unNormalizeOutput)
 {
-	// Normalize
 	MatrixXd input_norm = Helpers::Normalize(input, muX, sigmaX);
 
-	// Feed forward
-	MatrixXd Yhat = FeedForward(input_norm);
+	MatrixXd Yhat = FeedForward(input_norm, false);
 
-	// Un-normalize
-	return Helpers::UnNormalize(Yhat, muY, sigmaY);
+	if (unNormalizeOutput)
+	{
+		return Helpers::UnNormalize(Yhat, muY, sigmaY);
+	}
+
+	return Yhat;
 }
 
 #pragma endregion
@@ -112,12 +129,17 @@ MatrixXd TwoLayerNN::Predict(MatrixXd input)
 
 #pragma region Private methods
 
-MatrixXd TwoLayerNN::FeedForward(MatrixXd input)
+MatrixXd TwoLayerNN::FeedForward(MatrixXd input, bool isTraining)
 {
-	Z1 = (W1 * input).colwise() + b1;
-	A1 = Helpers::Sigmoid(Z1);
+	MatrixXd Z1 = (W1 * input).colwise() + b1;
+	MatrixXd activatedZ1 = Helpers::Sigmoid(Z1);
 
-	return ((W2 * A1).colwise() + b2);
+	if (isTraining)
+	{
+		A1 = activatedZ1;
+	}
+
+	return ((W2 * activatedZ1).colwise() + b2);
 }
 
 void TwoLayerNN::Backprop(MatrixXd Yhat)
@@ -127,9 +149,76 @@ void TwoLayerNN::Backprop(MatrixXd Yhat)
 	MatrixXd dZ2 = Yhat - Y_train;
 	dW2 = ((dZ2 * A1.transpose()).array() / m).matrix();
 	db2 = (dZ2.rowwise().sum().array() / m).matrix();
-	MatrixXd dZ1 = ((W2.transpose() * dZ2).array() * (Helpers::Sigmoid(Z1).array() * (1.0 - Helpers::Sigmoid(Z1).array()))).matrix();
+	MatrixXd dZ1 = ((W2.transpose() * dZ2).array() * (A1.array() * (1.0 - A1.array()))).matrix();
 	dW1 = ((dZ1 * X_train.transpose()).array() / m).matrix();
 	db1 = (dZ1.rowwise().sum().array() / m).matrix();
+}
+
+void TwoLayerNN::SplitDataSet(MatrixXd x, MatrixXd y, double trainRatio, double validRatio, double testRatio)
+{
+	int m = x.cols();
+	int* range = Helpers::ShuffledRange(m);
+
+	int trainCount = trainRatio * m;
+	int validCount = validRatio * m;
+	int testCount = testRatio * m;
+
+	int sum = trainCount + validCount + testCount;
+	int diff = m - sum;
+
+	if (diff > 0)
+	{
+		trainCount += diff;
+	}
+
+	int numRows = x.rows();
+
+	X_train = MatrixXd::Zero(numRows, trainCount);
+	Y_train = MatrixXd::Zero(numRows, trainCount);
+	X_valid = MatrixXd::Zero(numRows, validCount);
+	Y_valid = MatrixXd::Zero(numRows, validCount);
+	X_test = MatrixXd::Zero(numRows, testCount);
+	Y_test = MatrixXd::Zero(numRows, testCount);
+
+	int col = 0;
+	int localCol = 0;
+	while (localCol < trainCount)
+	{
+		for (int row = 0; row < numRows; row++)
+		{
+			X_train(row, localCol) = x(row, range[col]);
+			Y_train(row, localCol) = y(row, range[col]);
+		}
+
+		localCol++;
+		col++;
+	}
+
+	localCol = 0;
+	while (localCol < validCount)
+	{
+		for (int row = 0; row < numRows; row++)
+		{
+			X_valid(row, localCol) = x(row, range[col]);
+			Y_valid(row, localCol) = y(row, range[col]);
+		}
+
+		localCol++;
+		col++;
+	}
+
+	localCol = 0;
+	while (localCol < testCount)
+	{
+		for (int row = 0; row < numRows; row++)
+		{
+			X_test(row, localCol) = x(row, range[col]);
+			Y_test(row, localCol) = y(row, range[col]);
+		}
+
+		localCol++;
+		col++;
+	}
 }
 
 #pragma endregion

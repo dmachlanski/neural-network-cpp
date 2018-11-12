@@ -22,7 +22,7 @@ int main()
 
 	model.LoadModel("../output/");
 
-	MatrixXd result = model.Predict(input_raw);
+	MatrixXd result = model.Predict(input_raw, true);
 	
 	cout << result << endl;
 

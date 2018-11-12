@@ -36,3 +36,14 @@
 /HelpersNN/Debug
 /RobotNN/Debug
 /TrainNN/Debug
+/output/W2.csv
+/output/W1.csv
+/output/Valid.csv
+/output/sigmaY.csv
+/output/sigmaX.csv
+/output/muY.csv
+/output/muX.csv
+/output/J.csv
+/output/b2.csv
+/output/b1.csv
+*.opendb

@@ -13,4 +13,5 @@ namespace Helpers
 	MatrixXd UnNormalize(MatrixXd m, VectorXd mu, VectorXd sigma);
 	MatrixXd Sigmoid(MatrixXd m);
 	double MeanSquaredError(MatrixXd desired, MatrixXd approx);
+	int* ShuffledRange(int range);
 }

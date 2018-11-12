@@ -1,8 +1,32 @@
 #include "Helpers.h"
 #include <fstream>
+#include <algorithm>    // std::random_shuffle
+#include <ctime>        // std::time
+#include <cstdlib>      // std::rand, std::srand
 
 namespace Helpers
 {
+#pragma region Private methods
+
+	int* Range(int range)
+	{
+		int* result = new int[range];
+
+		for (int i = 0; i < range; i++)
+		{
+			result[i] = i;
+		}
+
+		return result;
+	}
+
+	int MyRandom(int i)
+	{
+		return rand() % i;
+	}
+
+#pragma endregion
+
 	MatrixXd FileToMatrix(string path)
 	{
 		ifstream file(path);
@@ -112,5 +136,15 @@ namespace Helpers
 		ArrayXXd diff = (desired - approx).array();
 
 		return ((diff*diff).sum() / (2.0 * m));
+	}
+
+	int* ShuffledRange(int range)
+	{
+		srand(unsigned(time(0)));
+
+		int* indexes = Range(range);
+		random_shuffle(indexes, indexes + range, MyRandom);
+
+		return indexes;
 	}
 }
