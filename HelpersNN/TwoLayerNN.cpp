@@ -30,6 +30,11 @@ void TwoLayerNN::InitializeModel(string inputDataPath, string outputDataPath, in
 	W2 = MatrixXd::Random(outputSize, hiddenSize);
 	b2 = VectorXd::Zero(outputSize);
 
+	dW1 = MatrixXd::Zero(hiddenSize, inputSize);
+	db1 = VectorXd::Zero(hiddenSize);
+	dW2 = MatrixXd::Zero(outputSize, hiddenSize);
+	db2 = VectorXd::Zero(outputSize);
+
 	// Find normalization params
 	Helpers::FindNormParams(X_train, muX, sigmaX);
 	Helpers::FindNormParams(Y_train, muY, sigmaY);
@@ -75,7 +80,7 @@ void TwoLayerNN::SaveModel(string path, bool saveBestWeights)
 	Helpers::MatrixToFile(path + "Valid.csv", Valid, false);
 }
 
-void TwoLayerNN::Train(double learningRate, int batchSize, int epochs, double altStop, int printOn)
+void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int epochs, double altStop, int printOn)
 {
 	int m = X_train.cols();
 	int iterations = m / batchSize;
@@ -114,11 +119,17 @@ void TwoLayerNN::Train(double learningRate, int batchSize, int epochs, double al
 
 			Backprop(batchX, batchY, Yhat);
 
-			// Apply gradients
-			W1 -= (learningRate * dW1.array()).matrix();
-			b1 -= (learningRate * db1.array()).matrix();
-			W2 -= (learningRate * dW2.array()).matrix();
-			b2 -= (learningRate * db2.array()).matrix();
+			// Calculate deltas
+			dW1 = (-learningRate * gradW1.array()).matrix() + (momentum * dW1.array()).matrix();
+			db1 = (-learningRate * gradB1.array()).matrix() + (momentum * db1.array()).matrix();
+			dW2 = (-learningRate * gradW2.array()).matrix() + (momentum * dW2.array()).matrix();
+			db2 - (-learningRate * gradB2.array()).matrix() + (momentum * db2.array()).matrix();
+
+			// Update weights
+			W1 += dW1;
+			b1 += db1;
+			W2 += dW2;
+			b2 += db2;
 
 			MatrixXd Yvalid = Predict(X_valid, TwoLayerNN::normalizeOutput);
 			Valid(loopIndex) = Helpers::MeanSquaredError(Y_valid, Yvalid);
@@ -204,11 +215,11 @@ void TwoLayerNN::Backprop(MatrixXd X, MatrixXd Y, MatrixXd Yhat)
 	double m = X.cols();
 
 	MatrixXd dZ2 = Yhat - Y;
-	dW2 = ((dZ2 * A1.transpose()).array() / m).matrix();
-	db2 = (dZ2.rowwise().sum().array() / m).matrix();
+	gradW2 = ((dZ2 * A1.transpose()).array() / m).matrix();
+	gradB2 = (dZ2.rowwise().sum().array() / m).matrix();
 	MatrixXd dZ1 = ((W2.transpose() * dZ2).array() * (A1.array() * (1.0 - A1.array()))).matrix();
-	dW1 = ((dZ1 * X.transpose()).array() / m).matrix();
-	db1 = (dZ1.rowwise().sum().array() / m).matrix();
+	gradW1 = ((dZ1 * X.transpose()).array() / m).matrix();
+	gradB1 = (dZ1.rowwise().sum().array() / m).matrix();
 }
 
 void TwoLayerNN::UpdateBestWeights()

@@ -98,10 +98,10 @@ namespace Helpers
 		}
 	}
 
-	void FindNormParams(MatrixXd m, VectorXd &mean, VectorXd &range)
+	void FindNormParams(MatrixXd m, VectorXd &mu, VectorXd &sigma)
 	{
-		mean = m.rowwise().mean();
-		range = m.rowwise().maxCoeff() - m.rowwise().minCoeff();
+		mu = m.rowwise().minCoeff();
+		sigma = m.rowwise().maxCoeff() - m.rowwise().minCoeff();
 	}
 
 	MatrixXd Normalize(MatrixXd m, VectorXd mu, VectorXd sigma)
