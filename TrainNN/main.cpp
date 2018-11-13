@@ -17,7 +17,7 @@ int main()
 
 	model.InitializeModel(inputPath, outputPath, 15, false);
 
-	model.Train(0.02, 10, 1, 500.0);
+	model.Train(0.02, 10, 1, 1.0, 100);
 
 	model.SaveModel(OUTPUT_PATH, true);
 

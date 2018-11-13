@@ -12,7 +12,7 @@ public:
 	void InitializeModel(string inputDataPath, string outputDataPath, int hiddenUnits, bool normalizeOutput);
 	void LoadModel(string path);
 	void SaveModel(string path, bool saveBestWeights);
-	void Train(double learningRate, int batchSize, int epochs, double altStop);
+	void Train(double learningRate, int batchSize, int epochs, double altStop, int printOn);
 	MatrixXd Predict(MatrixXd input, bool unNormalizeOutput);
 	void TestNormalization(MatrixXd input);
 
@@ -21,6 +21,7 @@ private:
 	void Backprop(MatrixXd X, MatrixXd Y, MatrixXd Yhat);
 	void SplitDataSet(MatrixXd x, MatrixXd y, double trainRatio, double validRatio, double testRatio);
 	void UpdateBestWeights();
+	void UseBestWeights();
 
 	int inputSize, hiddenSize, outputSize;
 	bool normalizeOutput;

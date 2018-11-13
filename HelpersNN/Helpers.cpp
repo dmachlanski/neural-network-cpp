@@ -135,7 +135,8 @@ namespace Helpers
 
 		ArrayXXd diff = (desired - approx).array();
 
-		return ((diff*diff).sum() / (2.0 * m));
+		// Average over both outputs hence dividing by 4.
+		return ((diff*diff).sum() / (4.0 * m));
 	}
 
 	int* ShuffledRange(int range)

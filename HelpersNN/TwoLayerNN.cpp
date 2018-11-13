@@ -75,7 +75,7 @@ void TwoLayerNN::SaveModel(string path, bool saveBestWeights)
 	Helpers::MatrixToFile(path + "Valid.csv", Valid, false);
 }
 
-void TwoLayerNN::Train(double learningRate, int batchSize, int epochs, double altStop)
+void TwoLayerNN::Train(double learningRate, int batchSize, int epochs, double altStop, int printOn)
 {
 	int m = X_train.cols();
 	int iterations = m / batchSize;
@@ -89,6 +89,8 @@ void TwoLayerNN::Train(double learningRate, int batchSize, int epochs, double al
 	J = VectorXd::Zero(epochs * iterations);
 	Valid = VectorXd::Zero(epochs * iterations);
 	double bestValid = DBL_MAX;
+	int bestValidIndex;
+	int loopIndex = 0;
 
 	for (int i = 0; i < epochs; i++)
 	{
@@ -108,7 +110,7 @@ void TwoLayerNN::Train(double learningRate, int batchSize, int epochs, double al
 
 			// Main training loop
 			MatrixXd Yhat = FeedForward(batchX, true);
-			J(i) = Helpers::MeanSquaredError(batchY, Yhat);
+			J(loopIndex) = Helpers::MeanSquaredError(batchY, Yhat);
 
 			Backprop(batchX, batchY, Yhat);
 
@@ -119,25 +121,36 @@ void TwoLayerNN::Train(double learningRate, int batchSize, int epochs, double al
 			b2 -= (learningRate * db2.array()).matrix();
 
 			MatrixXd Yvalid = Predict(X_valid, TwoLayerNN::normalizeOutput);
-			Valid(i) = Helpers::MeanSquaredError(Y_valid, Yvalid);
+			Valid(loopIndex) = Helpers::MeanSquaredError(Y_valid, Yvalid);
 
-			cout << "Epoch " << i << ", iter " << j << ", loss: " << J(i) << ", valid: " << Valid(i) << endl;
-
-			if (Valid(i) < bestValid)
+			if (loopIndex % printOn == 0)
 			{
-				bestValid = Valid(i);
+				cout << "Epoch " << i << ", iter " << j << ", loss: " << J(loopIndex) << ", valid: " << Valid(loopIndex) << endl;
+			}
+
+			if (Valid(loopIndex) < bestValid)
+			{
+				bestValid = Valid(loopIndex);
+				bestValidIndex = loopIndex;
 				UpdateBestWeights();
 			}
 
-			if (Valid(i) < altStop)
+			if (Valid(loopIndex) < altStop)
 			{
 				cout << endl << "Early stopping\n\n";
 				MatrixXd Ytest = Predict(X_test, TwoLayerNN::normalizeOutput);
 				cout << "Test error: " << Helpers::MeanSquaredError(Y_test, Ytest) << endl;
 				return;
 			}
+
+			loopIndex++;
 		}
 	}
+
+	cout << "Best validation error achieved:\n";
+	cout << "Loss: " << J(bestValidIndex) << ", valid: " << Valid(bestValidIndex) << endl;
+
+	UseBestWeights();
 
 	MatrixXd Ytest = Predict(X_test, TwoLayerNN::normalizeOutput);
 	cout << "Test error: " << Helpers::MeanSquaredError(Y_test, Ytest) << endl;
@@ -204,6 +217,14 @@ void TwoLayerNN::UpdateBestWeights()
 	bestB1 = b1;
 	bestW2 = W2;
 	bestB2 = b2;
+}
+
+void TwoLayerNN::UseBestWeights()
+{
+	W1 = bestW1;
+	b1 = bestB1;
+	W2 = bestW2;
+	b2 = bestB2;
 }
 
 void TwoLayerNN::SplitDataSet(MatrixXd x, MatrixXd y, double trainRatio, double validRatio, double testRatio)
