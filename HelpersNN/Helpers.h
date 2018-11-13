@@ -14,4 +14,5 @@ namespace Helpers
 	MatrixXd Sigmoid(MatrixXd m);
 	double MeanSquaredError(MatrixXd desired, MatrixXd approx);
 	int* ShuffledRange(int range);
+	MatrixXd GetSubMatrix(MatrixXd m, int startIndex, int endIndex);
 }

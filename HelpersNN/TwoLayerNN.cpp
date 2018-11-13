@@ -53,8 +53,16 @@ void TwoLayerNN::LoadModel(string path)
 	sigmaY = Helpers::FileToMatrix(path + "sigmaY.csv");
 }
 
-void TwoLayerNN::SaveModel(string path)
+void TwoLayerNN::SaveModel(string path, bool saveBestWeights)
 {
+	if (saveBestWeights)
+	{
+		W1 = bestW1;
+		b1 = bestB1;
+		W2 = bestW2;
+		b2 = bestB2;
+	}
+
 	Helpers::MatrixToFile(path + "W1.csv", W1);
 	Helpers::MatrixToFile(path + "b1.csv", b1);
 	Helpers::MatrixToFile(path + "W2.csv", W2);
@@ -67,32 +75,68 @@ void TwoLayerNN::SaveModel(string path)
 	Helpers::MatrixToFile(path + "Valid.csv", Valid, false);
 }
 
-void TwoLayerNN::Train(double learningRate, int epochs)
+void TwoLayerNN::Train(double learningRate, int batchSize, int epochs, double altStop)
 {
-	J = VectorXd::Zero(epochs);
-	Valid = VectorXd::Zero(epochs);
+	int m = X_train.cols();
+	int iterations = m / batchSize;
+	int all = iterations * batchSize;
 
-	// TODO:
-	// Introduce batch size
+	if (all < m)
+	{
+		iterations++;
+	}
+
+	J = VectorXd::Zero(epochs * iterations);
+	Valid = VectorXd::Zero(epochs * iterations);
+	double bestValid = DBL_MAX;
 
 	for (int i = 0; i < epochs; i++)
 	{
-		// Main training loop
-		MatrixXd Yhat = FeedForward(X_train, true);
-		J(i) = Helpers::MeanSquaredError(Y_train, Yhat);
+		for (int j = 0; j < iterations; j++)
+		{
+			int start = j * batchSize;
+			int end = start + batchSize - 1;
 
-		MatrixXd Yvalid = Predict(X_valid, TwoLayerNN::normalizeOutput);
-		Valid(i) = Helpers::MeanSquaredError(Y_valid, Yvalid);
+			// Make sure it doesn't go beyond last index
+			if (end >= m)
+			{
+				end = m - 1;
+			}
 
-		Backprop(Yhat);
+			MatrixXd batchX = Helpers::GetSubMatrix(X_train, start, end);
+			MatrixXd batchY = Helpers::GetSubMatrix(Y_train, start, end);
 
-		// Apply gradients
-		W1 -= (learningRate * dW1.array()).matrix();
-		b1 -= (learningRate * db1.array()).matrix();
-		W2 -= (learningRate * dW2.array()).matrix();
-		b2 -= (learningRate * db2.array()).matrix();
+			// Main training loop
+			MatrixXd Yhat = FeedForward(batchX, true);
+			J(i) = Helpers::MeanSquaredError(batchY, Yhat);
 
-		cout << "Epoch " << i << ", loss: " << J(i) << ", valid: " << Valid(i) << endl;
+			Backprop(batchX, batchY, Yhat);
+
+			// Apply gradients
+			W1 -= (learningRate * dW1.array()).matrix();
+			b1 -= (learningRate * db1.array()).matrix();
+			W2 -= (learningRate * dW2.array()).matrix();
+			b2 -= (learningRate * db2.array()).matrix();
+
+			MatrixXd Yvalid = Predict(X_valid, TwoLayerNN::normalizeOutput);
+			Valid(i) = Helpers::MeanSquaredError(Y_valid, Yvalid);
+
+			cout << "Epoch " << i << ", iter " << j << ", loss: " << J(i) << ", valid: " << Valid(i) << endl;
+
+			if (Valid(i) < bestValid)
+			{
+				bestValid = Valid(i);
+				UpdateBestWeights();
+			}
+
+			if (Valid(i) < altStop)
+			{
+				cout << endl << "Early stopping\n\n";
+				MatrixXd Ytest = Predict(X_test, TwoLayerNN::normalizeOutput);
+				cout << "Test error: " << Helpers::MeanSquaredError(Y_test, Ytest) << endl;
+				return;
+			}
+		}
 	}
 
 	MatrixXd Ytest = Predict(X_test, TwoLayerNN::normalizeOutput);
@@ -142,16 +186,24 @@ MatrixXd TwoLayerNN::FeedForward(MatrixXd input, bool isTraining)
 	return ((W2 * activatedZ1).colwise() + b2);
 }
 
-void TwoLayerNN::Backprop(MatrixXd Yhat)
+void TwoLayerNN::Backprop(MatrixXd X, MatrixXd Y, MatrixXd Yhat)
 {
-	double m = X_train.cols();
+	double m = X.cols();
 
-	MatrixXd dZ2 = Yhat - Y_train;
+	MatrixXd dZ2 = Yhat - Y;
 	dW2 = ((dZ2 * A1.transpose()).array() / m).matrix();
 	db2 = (dZ2.rowwise().sum().array() / m).matrix();
 	MatrixXd dZ1 = ((W2.transpose() * dZ2).array() * (A1.array() * (1.0 - A1.array()))).matrix();
-	dW1 = ((dZ1 * X_train.transpose()).array() / m).matrix();
+	dW1 = ((dZ1 * X.transpose()).array() / m).matrix();
 	db1 = (dZ1.rowwise().sum().array() / m).matrix();
+}
+
+void TwoLayerNN::UpdateBestWeights()
+{
+	bestW1 = W1;
+	bestB1 = b1;
+	bestW2 = W2;
+	bestB2 = b2;
 }
 
 void TwoLayerNN::SplitDataSet(MatrixXd x, MatrixXd y, double trainRatio, double validRatio, double testRatio)

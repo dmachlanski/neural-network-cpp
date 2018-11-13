@@ -147,4 +147,25 @@ namespace Helpers
 
 		return indexes;
 	}
+
+	MatrixXd GetSubMatrix(MatrixXd m, int startIndex, int endIndex)
+	{
+		int rows = m.rows();
+		int cols = (endIndex - startIndex) + 1;
+		int currentCol = 0;
+
+		MatrixXd result(rows, cols);
+
+		for (int i = startIndex; i <= endIndex; i++)
+		{
+			for (int j = 0; j < rows; j++)
+			{
+				result(j, currentCol) = m(j, i);
+			}
+
+			currentCol++;
+		}
+
+		return result;
+	}
 }

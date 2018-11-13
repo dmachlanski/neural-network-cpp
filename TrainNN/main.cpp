@@ -15,11 +15,11 @@ int main()
 
 	TwoLayerNN model;
 
-	model.InitializeModel(inputPath, outputPath, 15, true);
+	model.InitializeModel(inputPath, outputPath, 15, false);
 
-	model.Train(0.03, 40);
+	model.Train(0.02, 10, 1, 500.0);
 
-	model.SaveModel(OUTPUT_PATH);
+	model.SaveModel(OUTPUT_PATH, true);
 
 	return 0;
 }
