@@ -47,3 +47,6 @@
 /output/b2.csv
 /output/b1.csv
 *.opendb
+/HelpersNN/x64/Debug
+/RobotNN/x64/Debug
+/TrainNN/x64/Debug

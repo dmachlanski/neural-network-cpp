@@ -129,14 +129,24 @@ namespace Helpers
 		return (1.0 / (1.0 + result.array())).matrix();
 	}
 
-	double MeanSquaredError(MatrixXd desired, MatrixXd approx)
+	double RootMeanSquaredError(MatrixXd desired, MatrixXd approx)
 	{
 		double m = desired.cols();
 
-		ArrayXXd diff = (desired - approx).array();
+		// Difference
+		ArrayXXd outputError = (desired - approx).array();
 
-		// Average over both outputs hence dividing by 4.
-		return ((diff*diff).sum() / (4.0 * m));
+		// Squared error
+		outputError = outputError*outputError;
+
+		// Sum over all examples for each output and divide over the number of examples
+		ArrayXXd mse = outputError.rowwise().sum() / (2.0 * m);
+
+		// Get a square root for each output
+		mse = mse.sqrt();
+
+		// Average over both outputs
+		return (mse.sum() / 2.0);
 	}
 
 	int* ShuffledRange(int range)

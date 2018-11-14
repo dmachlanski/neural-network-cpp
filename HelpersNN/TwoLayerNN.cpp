@@ -115,7 +115,7 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 
 			// Main training loop
 			MatrixXd Yhat = FeedForward(batchX, true);
-			J(loopIndex) = Helpers::MeanSquaredError(batchY, Yhat);
+			J(loopIndex) = Helpers::RootMeanSquaredError(batchY, Yhat);
 
 			Backprop(batchX, batchY, Yhat);
 
@@ -123,7 +123,7 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 			dW1 = (-learningRate * gradW1.array()).matrix() + (momentum * dW1.array()).matrix();
 			db1 = (-learningRate * gradB1.array()).matrix() + (momentum * db1.array()).matrix();
 			dW2 = (-learningRate * gradW2.array()).matrix() + (momentum * dW2.array()).matrix();
-			db2 - (-learningRate * gradB2.array()).matrix() + (momentum * db2.array()).matrix();
+			db2 = (-learningRate * gradB2.array()).matrix() + (momentum * db2.array()).matrix();
 
 			// Update weights
 			W1 += dW1;
@@ -132,7 +132,7 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 			b2 += db2;
 
 			MatrixXd Yvalid = Predict(X_valid, TwoLayerNN::normalizeOutput);
-			Valid(loopIndex) = Helpers::MeanSquaredError(Y_valid, Yvalid);
+			Valid(loopIndex) = Helpers::RootMeanSquaredError(Y_valid, Yvalid);
 
 			if (loopIndex % printOn == 0)
 			{
@@ -150,7 +150,7 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 			{
 				cout << endl << "Early stopping\n\n";
 				MatrixXd Ytest = Predict(X_test, TwoLayerNN::normalizeOutput);
-				cout << "Test error: " << Helpers::MeanSquaredError(Y_test, Ytest) << endl;
+				cout << "Test error: " << Helpers::RootMeanSquaredError(Y_test, Ytest) << endl;
 				return;
 			}
 
@@ -164,7 +164,7 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 	UseBestWeights();
 
 	MatrixXd Ytest = Predict(X_test, TwoLayerNN::normalizeOutput);
-	cout << "Test error: " << Helpers::MeanSquaredError(Y_test, Ytest) << endl;
+	cout << "Test error: " << Helpers::RootMeanSquaredError(Y_test, Ytest) << endl;
 }
 
 void TwoLayerNN::TestNormalization(MatrixXd input)

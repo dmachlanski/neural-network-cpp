@@ -14,11 +14,11 @@ int main()
 	string outputPath = DATA_PATH + "output.csv";
 
 	TwoLayerNN model;
-
-	model.InitializeModel(inputPath, outputPath, 64, false);
-
-	model.Train(0.02, 0.1, 10, 1, 1.0, 100);
-
+	
+	model.InitializeModel(inputPath, outputPath, 20, false);
+	
+	model.Train(0.02, 0.1, 10, 2, 0.01, 100);
+	
 	model.SaveModel(OUTPUT_PATH, true);
 
 	return 0;

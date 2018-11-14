@@ -12,7 +12,7 @@ namespace Helpers
 	MatrixXd Normalize(MatrixXd m, VectorXd mu, VectorXd sigma);
 	MatrixXd UnNormalize(MatrixXd m, VectorXd mu, VectorXd sigma);
 	MatrixXd Sigmoid(MatrixXd m);
-	double MeanSquaredError(MatrixXd desired, MatrixXd approx);
+	double RootMeanSquaredError(MatrixXd desired, MatrixXd approx);
 	int* ShuffledRange(int range);
 	MatrixXd GetSubMatrix(MatrixXd m, int startIndex, int endIndex);
 }
