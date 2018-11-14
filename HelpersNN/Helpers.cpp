@@ -149,6 +149,23 @@ namespace Helpers
 		return (mse.sum() / 2.0);
 	}
 
+	double MeanSquaredError(MatrixXd desired, MatrixXd approx)
+	{
+		double m = desired.cols();
+
+		// Difference
+		ArrayXXd outputError = (desired - approx).array();
+
+		// Squared error
+		outputError = outputError*outputError;
+
+		// Sum over all examples for each output and divide over the number of examples
+		ArrayXXd mse = outputError.rowwise().sum() / (2.0 * m);
+
+		// Average over both outputs
+		return (mse.sum() / 2.0);
+	}
+
 	int* ShuffledRange(int range)
 	{
 		srand(unsigned(time(0)));

@@ -16,6 +16,11 @@ void TwoLayerNN::InitializeModel(string inputDataPath, string outputDataPath, in
 	MatrixXd X = Helpers::FileToMatrix(inputDataPath);
 	MatrixXd Y = Helpers::FileToMatrix(outputDataPath);
 
+	//Helpers::FindNormParams(X, muX, sigmaX);
+	//Helpers::FindNormParams(Y, muY, sigmaY);
+	//X = Helpers::Normalize(X, muX, sigmaX);
+	//Y = Helpers::Normalize(Y, muY, sigmaY);
+
 	// Split the data (70/15/15)
 	SplitDataSet(X, Y, 0.7, 0.15, 0.15);
 
@@ -115,7 +120,7 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 
 			// Main training loop
 			MatrixXd Yhat = FeedForward(batchX, true);
-			J(loopIndex) = Helpers::RootMeanSquaredError(batchY, Yhat);
+			J(loopIndex) = Helpers::MeanSquaredError(batchY, Yhat);
 
 			Backprop(batchX, batchY, Yhat);
 
@@ -132,7 +137,7 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 			b2 += db2;
 
 			MatrixXd Yvalid = Predict(X_valid, TwoLayerNN::normalizeOutput);
-			Valid(loopIndex) = Helpers::RootMeanSquaredError(Y_valid, Yvalid);
+			Valid(loopIndex) = Helpers::MeanSquaredError(Y_valid, Yvalid);
 
 			if (loopIndex % printOn == 0)
 			{
@@ -150,7 +155,7 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 			{
 				cout << endl << "Early stopping\n\n";
 				MatrixXd Ytest = Predict(X_test, TwoLayerNN::normalizeOutput);
-				cout << "Test error: " << Helpers::RootMeanSquaredError(Y_test, Ytest) << endl;
+				cout << "Test error: " << Helpers::MeanSquaredError(Y_test, Ytest) << endl;
 				return;
 			}
 
@@ -164,7 +169,7 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 	UseBestWeights();
 
 	MatrixXd Ytest = Predict(X_test, TwoLayerNN::normalizeOutput);
-	cout << "Test error: " << Helpers::RootMeanSquaredError(Y_test, Ytest) << endl;
+	cout << "Test error: " << Helpers::MeanSquaredError(Y_test, Ytest) << endl;
 }
 
 void TwoLayerNN::TestNormalization(MatrixXd input)
