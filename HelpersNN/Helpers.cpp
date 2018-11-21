@@ -196,4 +196,24 @@ namespace Helpers
 
 		return result;
 	}
+
+	MatrixXd GetRandomMatrix(int rows, int cols)
+	{
+		return ((ArrayXXd::Random(rows, cols) + 1.0) / 2.0).matrix();
+	}
+
+	MatrixXd GetDropuotMatrix(int rows, int cols, double p)
+	{
+		MatrixXd random = GetRandomMatrix(rows, cols);
+
+		for (int i = 0; i < rows; i++)
+		{
+			for (int j = 0; j < cols; j++)
+			{
+				random(i, j) = random(i, j) < p ? (1.0 / p) : 0.0;
+			}
+		}
+
+		return random;
+	}
 }

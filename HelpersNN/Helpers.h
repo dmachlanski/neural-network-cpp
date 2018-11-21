@@ -16,4 +16,6 @@ namespace Helpers
 	double MeanSquaredError(MatrixXd desired, MatrixXd approx);
 	int* ShuffledRange(int range);
 	MatrixXd GetSubMatrix(MatrixXd m, int startIndex, int endIndex);
+	MatrixXd GetRandomMatrix(int rows, int cols);
+	MatrixXd GetDropuotMatrix(int rows, int cols, double p);
 }

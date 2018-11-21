@@ -15,11 +15,23 @@ int main()
 
 	TwoLayerNN model;
 	
-	model.InitializeModel(inputPath, outputPath, 20, false);
+	model.InitializeModel(inputPath, outputPath, 16, true, false);
 	
-	model.Train(0.02, 0.1, 10, 2, 0.01, 100);
+	model.Train(0.2, 0.8, -1, 80, 1);
 	
 	model.SaveModel(OUTPUT_PATH, true);
+	
+	// Simple test
+	MatrixXd test(2, 1);
+	test(0, 0) = 547.508;
+	test(1, 0) = 2151.29;
+	
+	MatrixXd result = model.Predict(test, true);
+	
+	// Expected:
+	// 115
+	// 140.054
+	cout << result << endl << endl;
 
 	return 0;
 }
