@@ -94,8 +94,8 @@ void TwoLayerNN::SaveModel(string path, bool saveBestWeights)
 	Helpers::MatrixToFile(path + "sigmaX.csv", sigmaX);
 	Helpers::MatrixToFile(path + "muY.csv", muY);
 	Helpers::MatrixToFile(path + "sigmaY.csv", sigmaY);
-	Helpers::MatrixToFile(path + "J.csv", J, false);
-	Helpers::MatrixToFile(path + "Valid.csv", Valid, false);
+	//Helpers::MatrixToFile(path + "J.csv", J, false);
+	//Helpers::MatrixToFile(path + "Valid.csv", Valid, false);
 	Helpers::MatrixToFile(path + "JEpoch.csv", JEpoch, false);
 	Helpers::MatrixToFile(path + "ValidEpoch.csv", ValidEpoch, false);
 }
@@ -124,6 +124,11 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 	double bestValid = DBL_MAX;
 	int bestValidIndex;
 	int loopIndex = 1;
+
+	if (printOn < 0)
+	{
+		printOn = m - 1;
+	}
 
 	// Calculate initial loss
 	MatrixXd Yhat = FeedForward(X_train, true, TwoLayerNN::isOutputLinear);
@@ -156,7 +161,7 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 
 			// Main training loop
 			Yhat = FeedForward(batchX, true, TwoLayerNN::isOutputLinear);
-			J(loopIndex) = Helpers::RootMeanSquaredError(batchY, Yhat);
+			//J(loopIndex) = Helpers::RootMeanSquaredError(batchY, Yhat);
 
 			// update JTemp
 			int JTempCol = 0;
@@ -184,34 +189,35 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 			W2 += dW2;
 			b2 += db2;
 
-			Yvalid = FeedForward(X_valid, false, TwoLayerNN::isOutputLinear);
-			Valid(loopIndex) = Helpers::RootMeanSquaredError(Y_valid, Yvalid);
+			//Yvalid = FeedForward(X_valid, false, TwoLayerNN::isOutputLinear);
+			//Valid(loopIndex) = Helpers::RootMeanSquaredError(Y_valid, Yvalid);
 
-			if (loopIndex % printOn == 0)
-			{
-				std::cout << "Epoch " << i << ", iter " << j << ", loss: " << J(loopIndex) << ", valid: " << Valid(loopIndex) << endl;
-			}
+			//if (loopIndex % printOn == 0)
+			//{
+			//	std::cout << "Epoch " << i << ", iter " << j << ", loss: " << J(loopIndex) << ", valid: " << Valid(loopIndex) << endl;
+			//}
 
-			if (Valid(loopIndex) < bestValid)
-			{
-				bestValid = Valid(loopIndex);
-				bestValidIndex = loopIndex;
-				UpdateBestWeights();
-			}
-
-			loopIndex++;
+			//loopIndex++;
 		}
-
 		// calculate RMSE based on JEpoch
 		JEpoch(i) = Helpers::RootMeanSquaredError(Y_train, JTemp);
 
 		// calculate validation error (RMSE)
 		Yvalid = FeedForward(X_valid, false, TwoLayerNN::isOutputLinear);
 		ValidEpoch(i) = Helpers::RootMeanSquaredError(Y_valid, Yvalid);
+
+		std::cout << "Epoch: " << i << ", validation error: " << ValidEpoch(i) << endl;
+
+		if (ValidEpoch(i) < bestValid)
+		{
+			bestValid = ValidEpoch(i);
+			bestValidIndex = i;
+			UpdateBestWeights();
+		}
 	}
 
 	std::cout << "Best validation error achieved:\n";
-	std::cout << "Train error: " << J(bestValidIndex) << ", Validation error: " << Valid(bestValidIndex) << endl;
+	std::cout << ValidEpoch(bestValidIndex) << endl;
 
 	UseBestWeights();
 
@@ -258,9 +264,9 @@ MatrixXd TwoLayerNN::FeedForward(MatrixXd input, bool isTraining, bool isOutputL
 	if (isTraining)
 	{
 		// Try dropout
-		double p = 0.5;
-		MatrixXd mask = Helpers::GetDropuotMatrix(activatedZ1.rows(), activatedZ1.cols(), p);
-		activatedZ1 = (activatedZ1.array() * mask.array()).matrix();
+		//double p = 0.5;
+		//MatrixXd mask = Helpers::GetDropuotMatrix(activatedZ1.rows(), activatedZ1.cols(), p);
+		//activatedZ1 = (activatedZ1.array() * mask.array()).matrix();
 
 		A1 = activatedZ1;
 	}

@@ -68,13 +68,13 @@ int main(int argc, char **argv) {
 		// run 
 		// add to initialisation −> create instances 
 		// add to run 
-		double first = robot.getSonarReading(1)->getRange();
-		double second = robot.getSonarReading(0)->getRange();
+		double first = robot.getSonarReading(0)->getRange();
+		double second = robot.getSonarReading(3)->getRange();
 
 		input(0, 0) = first;
 		input(1, 0) = second;
 
-		VectorXd output = model.Predict(input, false);
+		VectorXd output = model.Predict(input, true);
 
 		// Use the NN instead of "pid"
 		//double* output = pid(first, second);
