@@ -21,7 +21,7 @@ int main()
 	
 	model.SaveModel(OUTPUT_PATH, true);
 	
-	// Simple test
+	// Simple sanity check
 	MatrixXd test(2, 1);
 	test(0, 0) = 547.508;
 	test(1, 0) = 2151.29;
