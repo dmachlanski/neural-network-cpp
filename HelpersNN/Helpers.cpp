@@ -114,7 +114,7 @@ namespace Helpers
 		return ((m.array().colwise() * sigma.array()).colwise() + mu.array()).matrix();
 	}
 
-	MatrixXd Sigmoid(MatrixXd m)
+	MatrixXd Sigmoid(MatrixXd m, double lambda)
 	{
 		MatrixXd result(m.rows(), m.cols());
 
@@ -122,7 +122,7 @@ namespace Helpers
 		{
 			for (int j = 0; j < m.cols(); j++)
 			{
-				result(i, j) = exp(-m(i, j));
+				result(i, j) = exp(-m(i, j) * lambda);
 			}
 		}
 

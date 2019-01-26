@@ -15,9 +15,9 @@ int main()
 
 	TwoLayerNN model;
 	
-	model.InitializeModel(inputPath, outputPath, 4, true, false);
+	model.InitializeModel(inputPath, outputPath, 4, true, false, 0.8);
 	
-	model.Train(0.15, 0.9, 1, 100);
+	model.Train(0.4, 0.95, 1, 100, true);
 	
 	model.SaveModel(OUTPUT_PATH, true);
 	

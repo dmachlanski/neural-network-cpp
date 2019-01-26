@@ -11,7 +11,7 @@ namespace Helpers
 	void FindNormParams(MatrixXd m, VectorXd &mu, VectorXd &sigma);
 	MatrixXd Normalize(MatrixXd m, VectorXd mu, VectorXd sigma);
 	MatrixXd UnNormalize(MatrixXd m, VectorXd mu, VectorXd sigma);
-	MatrixXd Sigmoid(MatrixXd m);
+	MatrixXd Sigmoid(MatrixXd m, double lambda);
 	double RootMeanSquaredError(MatrixXd desired, MatrixXd approx);
 	double MeanSquaredError(MatrixXd desired, MatrixXd approx);
 	int* ShuffledRange(int range);

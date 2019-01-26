@@ -19,26 +19,6 @@ double ed = 0.0;
 double ePrev = 0.0;
 double baseVel = 100;
 
-double* pid(double first, double second) {
-	double* output = new double[2];
-
-	double minDist = first < second ? first : second;
-	e = desiredDistance - minDist;
-	ei = ei + e;
-	ed = e - ePrev;
-
-	ePrev = e;
-
-	double val = kp * e;
-
-	val = -2 * val / 260;
-
-	output[0] = baseVel - val * 260 / 2;
-	output[1] = baseVel + val * 260 / 2;
-
-	return output;
-}
-
 int main(int argc, char **argv) {
 	// Initialisations 
 
@@ -75,9 +55,6 @@ int main(int argc, char **argv) {
 		input(1, 0) = second;
 
 		VectorXd output = model.Predict(input, true);
-
-		// Use the NN instead of "pid"
-		//double* output = pid(first, second);
 
 		robot.setVel2(output(0, 0), output(1, 0));
 

@@ -8,10 +8,11 @@ TwoLayerNN::TwoLayerNN()
 
 #pragma region Public methods
 
-void TwoLayerNN::InitializeModel(string inputDataPath, string outputDataPath, int hiddenUnits, bool normalizeBeforeSplit, bool isOutputLinear)
+void TwoLayerNN::InitializeModel(string inputDataPath, string outputDataPath, int hiddenUnits, bool normalizeBeforeSplit, bool isOutputLinear, double lambda)
 {
 	// Wether the output should be linear
 	TwoLayerNN::isOutputLinear = isOutputLinear;
+	TwoLayerNN::lambda = lambda;
 
 	// Load the data set from files
 	MatrixXd X = Helpers::FileToMatrix(inputDataPath);
@@ -117,7 +118,7 @@ void TwoLayerNN::SaveModel(string path, bool saveBestWeights)
 	Helpers::MatrixToFile(path + "ValidEpoch.csv", ValidEpoch, false);
 }
 
-void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int epochs)
+void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int epochs, bool earlyStopping)
 {
 	// Number of training examples
 	int m = X_train.cols();
@@ -212,6 +213,12 @@ void TwoLayerNN::Train(double learningRate, double momentum, int batchSize, int 
 			bestValidIndex = i;
 			UpdateBestWeights();
 		}
+
+		if (earlyStopping && (i > 0) && (ValidEpoch(i - 1) < ValidEpoch(i)))
+		{
+			// Previous validation error was better than the current one - stop learing
+			break;
+		}
 	}
 
 	// Report the best validation error obtained
@@ -260,7 +267,7 @@ MatrixXd TwoLayerNN::FeedForward(MatrixXd input, bool isTraining, bool isOutputL
 {
 	MatrixXd result;
 	MatrixXd Z1 = (W1 * input).colwise() + b1;
-	MatrixXd activatedZ1 = Helpers::Sigmoid(Z1);
+	MatrixXd activatedZ1 = Helpers::Sigmoid(Z1, TwoLayerNN::lambda);
 
 	if (isTraining)
 	{
@@ -277,7 +284,7 @@ MatrixXd TwoLayerNN::FeedForward(MatrixXd input, bool isTraining, bool isOutputL
 	}
 	else
 	{
-		MatrixXd activatedZ2 = Helpers::Sigmoid(Z2);
+		MatrixXd activatedZ2 = Helpers::Sigmoid(Z2, TwoLayerNN::lambda);
 
 		if (isTraining)
 		{
